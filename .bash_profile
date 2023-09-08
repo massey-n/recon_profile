@@ -19,8 +19,7 @@ crtndstry(){
 }
 
 am(){ #runs amass passively and saves to json
-amass enum --passive -d $1 -json $1.json
-jq .name $1.json | sed "s/\"//g"| httprobe -c 60 | tee -a $1-domains.txt
+amass enum --passive -d $1 && amass db -names -d $1 | httprobe -c 60 | tee -a $1-domains.txt #am target.com
 }
 
 certprobe(){ #runs httprobe on all the hosts from certspotter
@@ -32,7 +31,7 @@ sudo masscan -p4443,2075,2076,6443,3868,3366,8443,8080,9443,9091,3000,8000,5900,
 }
 
 certspotter(){ 
-curl -s https://certspotter.com/api/v0/certs\?domain\=$1 | jq '.[].dns_names[]' | sed 's/\"//g' | sed 's/\*\.//g' | sort -u | grep $1
+curl -s https://api.certspotter.com/v1/issuances?domain=$1\&expand\=dns_names | jq '.[].dns_names[]' | sed 's/\"//g' | sed 's/\*\.//g' | sort -u | grep $1
 } #h/t Michiel Prins
 
 crtsh(){
@@ -40,7 +39,7 @@ curl -s https://crt.sh/?Identity=%.$1 | grep ">*.$1" | sed 's/<[/]*[TB][DR]>/\n/
 }
 
 certnmap(){
-curl https://certspotter.com/api/v0/certs\?domain\=$1 | jq '.[].dns_names[]' | sed 's/\"//g' | sed 's/\*\.//g' | sort -u | grep $1  | nmap -T5 -Pn -sS -i - -$
+curl https://api.certspotter.com/v1/issuances?domain=$1\&expand\=dns_names | jq '.[].dns_names[]' | sed 's/\"//g' | sed 's/\*\.//g' | sort -u | grep $1  | nmap -T5 -Pn -sS -i - -$
 } #h/t Jobert Abma
 
 ipinfo(){
